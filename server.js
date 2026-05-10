@@ -3,10 +3,19 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+
+/* health route */
+app.get("/", (req, res) => {
+    res.send("CordChat server is running");
+});
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: { origin: "*" }
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
 });
 
 let users = {};
@@ -40,10 +49,7 @@ io.on("connection", socket => {
 
     socket.on("private-message", data => {
         const target = users[data.to];
-
-        if (target) {
-            target.emit("private-message", data);
-        }
+        if (target) target.emit("private-message", data);
     });
 
     socket.on("disconnect", () => {
@@ -60,6 +66,8 @@ io.on("connection", socket => {
     });
 });
 
-server.listen(3000, () => {
-    console.log("Bridge server running on port 3000");
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+    console.log("CordChat server running on port " + PORT);
 });
